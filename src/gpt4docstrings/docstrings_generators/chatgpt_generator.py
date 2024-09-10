@@ -1,21 +1,16 @@
 import os
 import textwrap
-
-import openai
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate
-
+import anthropic
+from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 from gpt4docstrings.docstring import Docstring
 from gpt4docstrings.docstrings_generators.base import DocstringGenerator
-from gpt4docstrings.prompts.generation.chatgpt import CLASS_PROMPTS
-from gpt4docstrings.prompts.generation.chatgpt import FUNCTION_PROMPTS
+from gpt4docstrings.prompts.generation.chatgpt import CLASS_PROMPTS, FUNCTION_PROMPTS
 from gpt4docstrings.utils.decorators import retry
 from gpt4docstrings.utils.parsers import DocstringParser
 from gpt4docstrings.visit import GPT4DocstringsNode
 
-
 class ChatGPTDocstringGenerator(DocstringGenerator):
-    """A class for generating Python docstrings using ChatGPT."""
+    """A class for generating Python docstrings using Claude Sonnet."""
 
     def __init__(
         self,
@@ -23,32 +18,29 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
         model_name: str,
         docstring_style: str,
     ):
-        self.api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
+        self.api_key = api_key if api_key else os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
-            raise ValueError("Please, provide the OpenAI API Key")
-
-        openai.api_key = self.api_key
-
+            raise ValueError("Please provide the Anthropic API Key")
+        self.client = Anthropic(api_key=self.api_key)
         self.model_name = model_name
         self.docstring_style = docstring_style
-
-        self.model = ChatOpenAI(
-            model_name=model_name, temperature=1.0, openai_api_key=self.api_key
-        )
         self.function_prompt_template = FUNCTION_PROMPTS.get(docstring_style)
         self.class_prompt_template = CLASS_PROMPTS.get(docstring_style)
 
     async def _get_completion(self, prompt: str) -> str:
         """
-        Generates a completion using the ChatGPT model.
-
+        Generates a completion using the Claude Sonnet model.
         Args:
             prompt (str): The prompt for generating the completion.
-
         Returns:
             str: The generated completion.
         """
-        return await self.model.apredict(prompt)
+        response = self.client.completions.create(
+            model=self.model_name,
+            prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
+            max_tokens_to_sample=300,
+        )
+        return response.completion
 
     def _get_template(self, node: GPT4DocstringsNode):
         """Returns a function template or a class template depending on the node type"""
@@ -61,10 +53,8 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
     async def generate_docstring(self, node: GPT4DocstringsNode) -> Docstring:
         """
         Generates a docstring for a function.
-
         Args:
             node (GPT4DocstringsNode): A GPT4DocstringsNode node
-
         Returns:
             Docstring: A Docstring object
         """
@@ -72,16 +62,10 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
         stripped_source = textwrap.dedent(source)
         prompt_template = self._get_template(node)
         parent_offset = node.col_offset
-
-        prompt = PromptTemplate(
-            template=prompt_template,
-            input_variables=["code"],
-        )
-        _input = prompt.format_prompt(code=stripped_source)
+        prompt = prompt_template.format(code=stripped_source)
         docstring = DocstringParser().parse(
-            await self._get_completion(_input.to_string())
+            await self._get_completion(prompt)
         )
-
         return Docstring(
             text=docstring, col_offset=4 + parent_offset, lineno=node.docstring_lineno
         )
