@@ -10,8 +10,8 @@ from gpt4docstrings.config import GPT4DocstringsConfig
     "-m",
     "--model",
     type=click.STRING,
-    default="gpt-3.5-turbo",
-    help="The model to be used by `gpt4docstrings`. By default, `gpt-3.5-turbo`.",
+    default="claude-3-sonnet-20240229",
+    help="The model to be used by `gpt4docstrings`. By default, `claude-3-sonnet-20240229`.",
 )
 @click.option(
     "-t",
