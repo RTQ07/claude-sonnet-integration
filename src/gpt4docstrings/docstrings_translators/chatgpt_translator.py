@@ -1,10 +1,7 @@
 import ast
 import os
 import textwrap
-
-import openai
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate
+from anthropic import Anthropic
 
 from gpt4docstrings.docstring import Docstring
 from gpt4docstrings.docstrings_translators.base import DocstringTranslator
@@ -15,7 +12,7 @@ from gpt4docstrings.visit import GPT4DocstringsNode
 
 
 class ChatGPTDocstringTranslator(DocstringTranslator):
-    """A class for generating Python docstrings using ChatGPT."""
+    """A class for generating Python docstrings using Claude."""
 
     def __init__(
         self,
@@ -23,23 +20,18 @@ class ChatGPTDocstringTranslator(DocstringTranslator):
         model_name: str,
         docstring_style: str,
     ):
-        self.api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
+        self.api_key = api_key if api_key else os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
-            raise ValueError("Please, provide the OpenAI API Key")
+            raise ValueError("Please, provide the Anthropic API Key")
 
-        openai.api_key = self.api_key
-
+        self.client = Anthropic(api_key=self.api_key)
         self.model_name = model_name
         self.docstring_style = docstring_style
-
-        self.model = ChatOpenAI(
-            model_name=model_name, temperature=1.0, openai_api_key=self.api_key
-        )
         self.prompt_template = PROMPT
 
     async def _get_completion(self, prompt: str) -> str:
         """
-        Generates a completion using the ChatGPT model.
+        Generates a completion using the Claude model.
 
         Args:
             prompt (str): The prompt for generating the completion.
@@ -47,7 +39,14 @@ class ChatGPTDocstringTranslator(DocstringTranslator):
         Returns:
             str: The generated completion.
         """
-        return await self.model.apredict(prompt)
+        response = self.client.messages.create(
+            model=self.model_name,
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.content[0].text
 
     @retry()
     async def translate_docstring(self, node: GPT4DocstringsNode) -> Docstring:
@@ -64,16 +63,11 @@ class ChatGPTDocstringTranslator(DocstringTranslator):
         stripped_source = textwrap.dedent(docstring)
         parent_offset = node.col_offset
 
-        prompt = PromptTemplate(
-            template=self.prompt_template,
-            input_variables=["docstring", "style"],
-        )
-        _input = prompt.format_prompt(
+        prompt = self.prompt_template.format(
             docstring=stripped_source, style=self.docstring_style
         )
-        docstring = DocstringParser().parse(
-            await self._get_completion(_input.to_string())
-        )
+        translated_docstring = await self._get_completion(prompt)
+        docstring = DocstringParser().parse(translated_docstring)
 
         return Docstring(
             text=docstring, col_offset=4 + parent_offset, lineno=node.docstring_lineno

@@ -28,7 +28,7 @@ class GPT4Docstrings:
         self,
         paths: Union[str, List[str]],
         excluded=None,
-        model: str = "gpt-3.5-turbo",
+        model: str = "claude-3-sonnet-20240229",
         docstring_style: str = "google",
         translate: bool = True,
         api_key: str = None,
@@ -264,7 +264,7 @@ class GPT4Docstrings:
 
         new_file_content = file_content
 
-        for node, docstring in zip(nodes, docstrings, strict=True):
+        for node, docstring in zip(nodes, docstrings):
             new_file_content = new_file_content.replace(
                 node.ast_node.body[0].value.value,
                 docstring.to_str(add_triple_quotes=False),
