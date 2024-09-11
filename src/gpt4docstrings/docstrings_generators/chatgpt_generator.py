@@ -1,6 +1,7 @@
 import os
 import textwrap
 from anthropic import Anthropic
+
 from gpt4docstrings.docstring import Docstring
 from gpt4docstrings.docstrings_generators.base import DocstringGenerator
 from gpt4docstrings.prompts.generation.chatgpt import CLASS_PROMPTS
@@ -35,14 +36,15 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
         Returns:
             str: The generated completion.
         """
-        formatted_prompt = f"\n\nHuman: {prompt}\n\nAssistant:"
-        response = self.client.completions.create(
+        response = self.client.messages.create(
             model=self.model_name,
-            prompt=formatted_prompt,
-            max_tokens_to_sample=1000,
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response.completion
-    
+        return response.content[0].text
+
     def _get_template(self, node: GPT4DocstringsNode):
         """Returns a function template or a class template depending on the node type"""
         if node.node_type in ["FunctionDef", "AsyncFunctionDef"]:
