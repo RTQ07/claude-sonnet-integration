@@ -35,21 +35,19 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
         Returns:
             str: The generated completion.
         """
-        response = self.client.messages.create(
+        response = self.client.completions.create(
             model=self.model_name,
-            max_tokens=1000,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            prompt=prompt,
+            max_tokens_to_sample=1000,
         )
-        return response.content[0].text
-
-    def _get_template(self, node: GPT4DocstringsNode):
-        """Returns a function template or a class template depending on the node type"""
-        if node.node_type in ["FunctionDef", "AsyncFunctionDef"]:
-            return self.function_prompt_template
-        else:
-            return self.class_prompt_template
+        return response.completion
+    
+        def _get_template(self, node: GPT4DocstringsNode):
+            """Returns a function template or a class template depending on the node type"""
+            if node.node_type in ["FunctionDef", "AsyncFunctionDef"]:
+                return self.function_prompt_template
+            else:
+                return self.class_prompt_template
 
     @retry()
     async def generate_docstring(self, node: GPT4DocstringsNode) -> Docstring:
