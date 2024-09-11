@@ -35,9 +35,10 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
         Returns:
             str: The generated completion.
         """
+        formatted_prompt = f"\n\nHuman: {prompt}\n\nAssistant:"
         response = self.client.completions.create(
             model=self.model_name,
-            prompt=prompt,
+            prompt=formatted_prompt,
             max_tokens_to_sample=1000,
         )
         return response.completion
