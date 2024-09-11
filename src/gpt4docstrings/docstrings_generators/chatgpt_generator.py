@@ -42,12 +42,12 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
         )
         return response.completion
     
-        def _get_template(self, node: GPT4DocstringsNode):
-            """Returns a function template or a class template depending on the node type"""
-            if node.node_type in ["FunctionDef", "AsyncFunctionDef"]:
-                return self.function_prompt_template
-            else:
-                return self.class_prompt_template
+    def _get_template(self, node: GPT4DocstringsNode):
+        """Returns a function template or a class template depending on the node type"""
+        if node.node_type in ["FunctionDef", "AsyncFunctionDef"]:
+            return self.function_prompt_template
+        else:
+            return self.class_prompt_template
 
     @retry()
     async def generate_docstring(self, node: GPT4DocstringsNode) -> Docstring:
