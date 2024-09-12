@@ -1,7 +1,7 @@
 <p align="center">
     <img alt="gpt4docstrings logo" src="images/logo.png" width=300 />
     <h1 align="center">gpt4docstrings</h1>
-    <h3 align="center">Generating Python docstrings with OpenAI ChatGPT!!</h3>
+    <h3 align="center">Generating Python docstrings with Anthropic's Claude!!</h3>
 </p>
 
 ---
@@ -29,8 +29,8 @@
 
 ## What is `gpt4docstrings`?
 
-`gpt4docstrings` is a library that helps you to write docstrings
-for your Python code. Select a path / paths where you want `gpt4docstrings`
+This version of `gpt4docstrings` is a library that helps you to write docstrings
+for your Python code using Anthropic's Claude AI model. Select a path / paths where you want `gpt4docstrings`
 to be applied and wait for the results!!
 
 ![](images/usage.gif)
@@ -47,7 +47,7 @@ to be applied and wait for the results!!
 You can install _gpt4docstrings_ via [pip] from [PyPI]:
 
 ```console
-$ pip install -U gpt4docstrings
+$ pip install git+https://github.com/RTQ07/claude-sonnet-integration.git
 ```
 
 ## Usage
@@ -55,7 +55,7 @@ $ pip install -U gpt4docstrings
 To run `gpt4docstrings` on a specific file, run this command.
 
 ```bash
-gpt4docstrings my_file.py
+gpt4docstrings _strings.py --model claude-3-sonnet-20240229
 ```
 
 Remember that, if you don't have your OpenAI API Key defined as an Environment Variable (OPENAI_API_KEY),
@@ -108,8 +108,6 @@ For more information about all the available options, you can check
 the `help` info:
 
 ```
-Usage: gpt4docstrings [OPTIONS] [PATHS]...
-
 Options:
   -h, --help                      Show this message and exit.
   -S, --ignore-setters            Ignore methods with property setter
@@ -132,14 +130,14 @@ Options:
   -e, --exclude PATH              Exclude PATHs of files and/or directories.
                                   Multiple `-e/--exclude` invocations
                                   supported.
-  -k, --api_key TEXT              OpenAI's API key. If not provided,
+  -k, --api_key TEXT              Anthropic's API key. If not provided,
                                   `gpt4docstrings` will try to access
-                                  `OPENAI_API_KEY` environment variable.
+                                  `ANTHROPIC_API_KEY` environment variable.
   -st, --style TEXT               Docstring style, which must be one of
                                   'google', 'reStructuredText', 'epytext',
                                   'numpy'
-  -m, --model TEXT                The model to be used by `gpt4docstrings`. By
-                                  default, `gpt-3.5-turbo`.
+  -m, --model TEXT                The Claude model to be used by `gpt4docstrings`. By
+                                  default, `claude-3-sonnet-20240229`.
 ```
 
 I also encourage you to see the [Command-line Reference] for more details!!
