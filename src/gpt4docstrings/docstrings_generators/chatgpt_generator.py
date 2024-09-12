@@ -1,6 +1,6 @@
 import os
 import textwrap
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from anthropic import Anthropic
 
 from gpt4docstrings.docstring import Docstring
 from gpt4docstrings.docstrings_generators.base import DocstringGenerator
@@ -36,12 +36,14 @@ class ChatGPTDocstringGenerator(DocstringGenerator):
         Returns:
             str: The generated completion.
         """
-        response = self.client.completions.create(
+        response = self.client.messages.create(
             model=self.model_name,
-            prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
-            max_tokens_to_sample=1000,
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response.completion
+        return response.content[0].text
 
     def _get_template(self, node: GPT4DocstringsNode):
         """Returns a function template or a class template depending on the node type"""
