@@ -58,7 +58,7 @@ To run `gpt4docstrings` on a specific file, run this command.
 gpt4docstrings _strings.py --model claude-3-sonnet-20240229
 ```
 
-Remember that, if you don't have your OpenAI API Key defined as an Environment Variable (OPENAI_API_KEY),
+Remember that, if you don't have your Anthropic API Key defined as an Environment Variable (ANTHROPIC_API_KEY),
 `gpt4docstrings` can accept the API Key as an option.
 
 ```bash
