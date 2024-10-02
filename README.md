@@ -79,13 +79,13 @@ In case you don't want to generate a `patch` file and modify the files in place,
 need to add the `--overwrite, -w` option:
 
 ```bash
-gpt4docstrings -w my_file.py
+gpt4docstrings --api_key sk-xxxxxxxxxxxx -w my_file.py
 ```
 
 You can also apply `gpt4docstrings` to folders recursively.
 
 ```bash
-gpt4docstrings src/
+gpt4docstrings --api_key sk-xxxxxxxxxxxx -w src/
 ```
 
 Another quite common situation is that you may want to exclude the `tests/` folder, for example,
