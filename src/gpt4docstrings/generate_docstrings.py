@@ -116,16 +116,22 @@ class GPT4Docstrings:
 
         self.common_base = get_common_base(filenames)
         return filenames
+        
+    @staticmethod
+    def _is_documented(node: GPT4DocstringsNode) -> bool:
+        """Check if a node already has a docstring."""
+        return ast.get_docstring(node.ast_node) is not None
 
     @staticmethod
     def _filter_nodes_generation(nodes):
-        """Filters the parsed nodes to only consider classes and functions"""
+        """Filters the parsed nodes to only consider undocumented classes and functions"""
         return [
             node
             for node in nodes
             if (
                 (node.node_type in ["ClassDef", "FunctionDef", "AsyncFunctionDef"])
                 and not node.covered
+                and not GPT4Docstrings._is_documented(node)
             )
         ]
 
@@ -214,25 +220,26 @@ class GPT4Docstrings:
         self, filename: str, file_content: str, nodes: List[GPT4DocstringsNode]
     ) -> str:
         """
-        Generates docstrings for a single file.
-
+        Generates docstrings for undocumented nodes in a single file.
+    
         Args:
             filename (str): The path of the file to generate docstrings for.
             file_content (str): The content of the file to be processed.
             nodes (List[GPT4DocstringsNode]): The list of `GPT4DocstringsNode` containing nodes from classes and
                 functions
-
+    
         Returns:
             The new file content
         """
         nodes = self._filter_inner_nested(self._filter_nodes_generation(nodes))
-
+    
         tasks = []
-
+    
         for node in nodes:
-            tasks.append(self.docstring_generator.generate_docstring(node))
-            self.documented_nodes.append([filename, node.name])
-
+            if not self._is_documented(node):
+                tasks.append(self.docstring_generator.generate_docstring(node))
+                self.documented_nodes.append([filename, node.name])
+    
         docstrings = await tqdm_asyncio.gather(*tasks)
         new_file_content = self._build_file_with_docstrings(file_content, docstrings)
         return new_file_content
